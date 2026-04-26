@@ -1,50 +1,99 @@
-import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { Float, Sphere, MeshDistortMaterial } from '@react-three/drei';
+import { useRef, useMemo } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import { Float, Box, Torus, Environment } from '@react-three/drei';
+import * as THREE from 'three';
+
+const COLORS = ['#22c55e', '#3b82f6', '#f97316', '#334155']; // Green, Blue, Orange, Slate
+
+function AnimatedShape({ type, initialPosition, scale, color, speedScale, floatIntensity }) {
+  const meshRef = useRef();
+  
+  useFrame((state) => {
+    if (meshRef.current) {
+      // Internal slow rotation
+      meshRef.current.rotation.x += 0.005 * speedScale;
+      meshRef.current.rotation.y += 0.004 * speedScale;
+      meshRef.current.rotation.z += 0.002 * speedScale;
+    }
+  });
+
+  const material = (
+    <meshPhysicalMaterial 
+      color={color}
+      transmission={0.4} 
+      opacity={0.8}
+      transparent
+      roughness={0.2} 
+      metalness={0.1}
+      clearcoat={1}
+      emissive={color}
+      emissiveIntensity={0.5}
+    />
+  );
+
+  return (
+    <Float speed={2 * speedScale} rotationIntensity={1} floatIntensity={floatIntensity} position={initialPosition}>
+      {type === 'cube' ? (
+        <Box ref={meshRef} args={[1, 1, 1]} scale={scale}>
+          {material}
+        </Box>
+      ) : (
+        <Torus ref={meshRef} args={[0.7, 0.25, 16, 32]} scale={scale}>
+          {material}
+        </Torus>
+      )}
+    </Float>
+  );
+}
 
 export default function ThreeScene() {
-  const sphereRef = useRef();
+  const { viewport } = useThree();
+  const groupRef = useRef();
 
+  // Generate a random layout of 20 items (cubes & donuts)
+  const shapes = useMemo(() => {
+    const items = [];
+    for (let i = 0; i < 20; i++) {
+      const type = Math.random() > 0.5 ? 'cube' : 'donut';
+      // Distribute randomly across the viewport area with depth
+      const x = (Math.random() - 0.5) * (viewport.width * 1.5);
+      const y = (Math.random() - 0.5) * (viewport.height * 1.5);
+      const z = (Math.random() - 0.5) * 10 - 5; // Depth layering
+      
+      const scale = Math.random() * 0.8 + 0.4;
+      const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      const speedScale = Math.random() * 1.5 + 0.5;
+      const floatIntensity = Math.random() * 3 + 1;
+
+      items.push({ id: i, type, initialPosition: [x, y, z], scale, color, speedScale, floatIntensity });
+    }
+    return items;
+  }, [viewport.width, viewport.height]);
+
+  // Parallax interaction based on mouse pointer
   useFrame((state) => {
-    if (sphereRef.current) {
-      sphereRef.current.rotation.x = state.clock.elapsedTime * 0.2;
-      sphereRef.current.rotation.y = state.clock.elapsedTime * 0.3;
+    if (groupRef.current) {
+      const targetX = (state.pointer.x * viewport.width) / 10;
+      const targetY = (state.pointer.y * viewport.height) / 10;
+      
+      groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetX, 0.05);
+      groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, 0.05);
     }
   });
 
   return (
     <>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[10, 10, 5]} intensity={1.5} />
-      <directionalLight position={[-10, -10, -5]} intensity={0.5} color="#22c55e" />
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[10, 10, 5]} intensity={1} color="#ffffff" />
+      <directionalLight position={[-10, -10, -5]} intensity={0.6} color="#eab308" />
       
-      <Float speed={2} rotationIntensity={1.5} floatIntensity={2}>
-        <Sphere ref={sphereRef} args={[1, 64, 64]} scale={2.5}>
-          <MeshDistortMaterial
-            color="#0f172a"
-            emissive="#22c55e"
-            emissiveIntensity={0.8}
-            attach="material"
-            distort={0.4}
-            speed={2}
-            roughness={0.2}
-            metalness={0.8}
-            wireframe={true}
-          />
-        </Sphere>
-      </Float>
-
-      <Float speed={4} rotationIntensity={2} floatIntensity={3} position={[-4, 2, -2]}>
-        <Sphere args={[0.5, 32, 32]}>
-          <meshStandardMaterial color="#3b82f6" emissive="#3b82f6" emissiveIntensity={2} />
-        </Sphere>
-      </Float>
+      <group ref={groupRef}>
+        {shapes.map((item) => (
+          <AnimatedShape key={item.id} {...item} />
+        ))}
+      </group>
       
-      <Float speed={3} rotationIntensity={1} floatIntensity={4} position={[4, -2, -1]}>
-        <Sphere args={[0.3, 32, 32]}>
-          <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={2} />
-        </Sphere>
-      </Float>
+      <Environment preset="city" />
     </>
   );
 }
