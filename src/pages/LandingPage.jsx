@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import HeroSection from '../components/landing/HeroSection';
 import EducationalSection from '../components/landing/EducationalSection';
+import GoalModules from '../components/landing/GoalModules';
 import InteractiveVisuals from '../components/landing/InteractiveVisuals';
 import HowItWorks from '../components/landing/HowItWorks';
 import Testimonials from '../components/landing/Testimonials';
@@ -11,6 +12,7 @@ export default function LandingPage() {
     <div className="bg-[#0f172a] text-slate-100 min-h-screen font-sans selection:bg-green-500/30">
       <HeroSection />
       <EducationalSection />
+      <GoalModules />
       <InteractiveVisuals />
       <HowItWorks />
       <Testimonials />
