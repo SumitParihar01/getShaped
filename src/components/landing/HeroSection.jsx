@@ -1,31 +1,30 @@
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Activity } from 'lucide-react';
+import LiveClockWidget from './LiveClockWidget';
 
 export default function HeroSection() {
-  const [time, setTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
   return (
     <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden px-4 sm:px-6 lg:px-8 min-h-screen flex items-center">
-      <div className="max-w-5xl mx-auto text-center relative z-10 pointer-events-none">
+      {/* Top Right Live Clock */}
+      <div className="absolute top-6 right-6 lg:top-10 lg:right-10 z-50 hidden md:block">
+        <LiveClockWidget />
+      </div>
+
+      <div className="max-w-5xl mx-auto text-center relative z-10 pointer-events-none w-full">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <div className="flex flex-col items-center justify-center gap-2 mb-6">
+          <div className="flex flex-col items-center justify-center gap-4 mb-6">
             <div className="flex items-center gap-2 text-green-400">
               <Activity size={28} />
               <span className="text-xl font-bold tracking-widest uppercase shadow-black drop-shadow-md">GetShaped</span>
             </div>
-            <div className="bg-slate-900/60 backdrop-blur border border-slate-700 text-slate-300 text-sm font-mono px-3 py-1 rounded-full shadow-lg">
-              {time.toLocaleTimeString()}
+            {/* Mobile Clock */}
+            <div className="md:hidden pointer-events-auto">
+              <LiveClockWidget />
             </div>
           </div>
 
