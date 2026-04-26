@@ -1,22 +1,10 @@
-import { Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Activity } from 'lucide-react';
-import { Canvas } from '@react-three/fiber';
-import ThreeScene from './ThreeScene';
 
 export default function HeroSection() {
   return (
     <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden px-4 sm:px-6 lg:px-8 min-h-screen flex items-center">
-      {/* 3D Canvas Background */}
-      <div className="absolute inset-0 z-0 opacity-50">
-        <Canvas camera={{ position: [0, 0, 8], fov: 45 }} dpr={[1, 2]}>
-          <Suspense fallback={null}>
-            <ThreeScene />
-          </Suspense>
-        </Canvas>
-      </div>
-
       <div className="max-w-5xl mx-auto text-center relative z-10 pointer-events-none">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
